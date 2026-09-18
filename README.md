@@ -6,6 +6,9 @@ catálogo de produtos, carrinho, cupom, totais e finalização (checkout).
 Segue o padrão **BFF (Backend for Frontend)**: o navegador só conversa com o próprio servidor Next.js (mesma
 origem); é o Next.js quem repassa as chamadas para a API NestJS real, que fica invisível para o cliente.
 
+🔗 **Loja em produção:** https://shopping-cart-frontend-two.vercel.app
+🖥️ **Backend:** https://github.com/StanleyBack-dev/shopping-cart-backend ([API em produção](https://shopping-cart-backend-delta.vercel.app) · [Swagger](https://shopping-cart-backend-delta.vercel.app/docs))
+
 ## Stack utilizada
 
 - **Next.js 15** (App Router) + **React 19** + **TypeScript** (strict)
@@ -124,6 +127,14 @@ BACKEND_API_URL=http://localhost:3000/v1 docker compose up --build
 Isso sobe o frontend containerizado em `http://localhost:3001`. Como `BACKEND_API_URL` só é lida pelos Route
 Handlers em tempo de requisição (nunca embutida no bundle do cliente), ela é passada como variável de ambiente
 normal do container — sem precisar de build-arg.
+
+## Deploy (Vercel)
+
+O deploy é zero-config: a Vercel detecta o Next.js automaticamente (App Router, Route Handlers inclusos) sem
+nenhum entry point especial — diferente do backend, que precisou de um adapter serverless dedicado. A única
+variável configurada no projeto da Vercel (ambiente Production) é `BACKEND_API_URL`, apontando para a API em
+produção; como é lida só no servidor (nunca `NEXT_PUBLIC_`), não é preciso rebuildar o frontend se a URL do
+backend mudar — só atualizar a variável e fazer um novo deploy.
 
 ## Variáveis de ambiente
 
