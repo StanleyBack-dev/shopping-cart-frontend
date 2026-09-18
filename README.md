@@ -45,10 +45,15 @@ src/api/<domínio>/                    # Cliente do BROWSER — chama as rotas /
 
 src/features/<domínio>/               # Hooks de estado por funcionalidade (usam src/api/*)
 ├── cart/{use-cart.ts, cart-storage.ts}
-└── products/use-products.ts
+├── products/use-products.ts
+└── catalog/                           # Metadados e lógica de apresentação da vitrine (puros, sem I/O)
+    ├── product-presentation.ts        # productId -> {categoria, ícone, gradiente}
+    ├── curated-sections.ts            # productId -> seção ("Mais vendidos", "Ofertas em destaque")
+    ├── filter-products.ts             # função pura: busca + categoria + ordenação
+    └── use-catalog-filters.ts         # hook: estado dos filtros + lista derivada
 
 src/components/{atoms,molecules,organisms}/  # Componentes de apresentação (atomic design)
-src/shared/                            # Utilitários (formatação de moeda, className helper)
+src/shared/                            # Utilitários (formatação de moeda, className helper, debounce)
 ```
 
 Cada camada tem uma responsabilidade única:
@@ -72,6 +77,23 @@ Cada camada tem uma responsabilidade única:
 servidor Next.js), então não há CORS a configurar entre navegador e backend, a URL do backend pode mudar sem
 tocar em código do cliente, e essa camada é o lugar natural para, no futuro, agregar chamadas, adicionar
 cache/sessão ou logging — sem o cliente perceber.
+
+## Vitrine: header, filtros e imagens dos produtos
+
+O catálogo é apresentado como uma loja de verdade, não só uma lista de produtos:
+
+- **Header fixo** com busca por nome, chips de categoria e ordenação (relevância / menor preço / maior preço),
+  além de um ícone de carrinho com contador de itens que leva direto ao painel do carrinho.
+- **Seções com curadoria** ("Mais vendidos", "Ofertas em destaque") além da lista completa — os mesmos 10
+  produtos da API, apenas agrupados de forma diferente no frontend (`features/catalog/curated-sections.ts`);
+  quando algum filtro/busca está ativo, essas seções somem e dão lugar a um único grid de resultados.
+- **Categoria e ícone por produto** (`features/catalog/product-presentation.ts`) são metadados **só do
+  frontend** — o backend não tem noção de categoria; é só uma tabela local `productId -> categoria/ícone`.
+
+**Sobre as imagens dos produtos:** não há fotos reais — cada produto usa um ícone (via `lucide-react`) sobre um
+gradiente de cor, gerado localmente e versionado no próprio repositório (`components/atoms/ProductImage.tsx`).
+Foi a alternativa viável sem um serviço de geração/hospedagem de imagens externo: dá uma identidade visual
+consistente por categoria sem depender de URLs externas ou assets pesados no repo.
 
 ## Como funciona o carrinho
 
@@ -132,6 +154,10 @@ normal do container — sem precisar de build-arg.
   cupom inválido e de estoque insuficiente). Dado o prazo, o esforço de testes ficou concentrado no backend
   (regras de negócio); testes de componente/E2E (ex.: Playwright) e testes dos Route Handlers do BFF seriam o
   próximo passo natural.
-- **Sem paginação/busca** no catálogo — só faz sentido com mais de 10 produtos.
+- **Busca/filtro/ordenação são client-side**, sobre os 10 produtos já carregados — não há paginação nem busca
+  no servidor. Faz sentido para um catálogo desse tamanho; com mais produtos, isso viraria parâmetros de query
+  na API (`GET /products?search=&category=&sort=`).
+- **Categorias e imagens dos produtos são metadados só do frontend** (`features/catalog/`), não vêm da API —
+  ver a seção "Vitrine" acima.
 - **Sem confirmação visual dedicada de checkout** (ex.: número do pedido) — o carrinho finalizado permanece
   visível em modo somente leitura, o que já atende ao requisito de finalizar e bloquear alterações.
