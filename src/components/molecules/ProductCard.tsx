@@ -1,6 +1,8 @@
 import { Product } from '@api/products/schema';
 import { Badge } from '@components/atoms/Badge';
 import { Button } from '@components/atoms/Button';
+import { ProductImage } from '@components/atoms/ProductImage';
+import { getProductPresentation } from '@features/catalog/product-presentation';
 import { formatCurrency } from '@shared/format';
 
 interface ProductCardProps {
@@ -20,11 +22,19 @@ export function ProductCard({
 }: ProductCardProps) {
   const isOutOfStock = product.stockQuantity <= 0;
   const hasReachedStockLimit = quantityInCart >= product.stockQuantity;
+  const { category } = getProductPresentation(product.id);
 
   return (
     <div className="flex flex-col gap-3 rounded-card border border-hairline bg-card p-4">
+      <ProductImage productId={product.id} className="h-32 w-full" />
+
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-medium text-ink">{product.description}</h3>
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-wide text-ink-subtle">
+            {category}
+          </p>
+          <h3 className="font-medium text-ink">{product.description}</h3>
+        </div>
         {isOutOfStock ? (
           <Badge tone="muted">Sem estoque</Badge>
         ) : (
