@@ -20,7 +20,10 @@ import { clearStoredCartId, readStoredCartId, writeStoredCartId } from './cart-s
 interface UseCartResult {
   cart: Cart | null;
   isLoading: boolean;
-  isMutating: boolean;
+  /** Product ids with an item-level mutation (add/update quantity/remove) in flight. */
+  pendingProductIds: ReadonlySet<number>;
+  isCouponPending: boolean;
+  isCheckingOut: boolean;
   error: string | null;
   dismissError: () => void;
   addItem: (productId: number, quantity?: number) => Promise<void>;
@@ -35,9 +38,13 @@ interface UseCartResult {
 export function useCart(): UseCartResult {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isMutating, setIsMutating] = useState(false);
+  const [pendingProductIds, setPendingProductIds] = useState<ReadonlySet<number>>(new Set());
+  const [isCouponPending, setIsCouponPending] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const hasInitialized = useRef(false);
+  const cartRef = useRef<Cart | null>(null);
+  cartRef.current = cart;
 
   const bootstrapCart = useCallback(async () => {
     setIsLoading(true);
@@ -77,8 +84,9 @@ export function useCart(): UseCartResult {
     void bootstrapCart();
   }, [bootstrapCart]);
 
-  const runMutation = useCallback(async (mutation: () => Promise<Cart>) => {
-    setIsMutating(true);
+  /** Runs a cart mutation scoped to a single product, without disabling anything else. */
+  const runItemMutation = useCallback(async (productId: number, mutation: () => Promise<Cart>) => {
+    setPendingProductIds((prev) => new Set(prev).add(productId));
     setError(null);
 
     try {
@@ -87,51 +95,87 @@ export function useCart(): UseCartResult {
     } catch (mutationError) {
       setError(getApiErrorMessage(mutationError));
     } finally {
-      setIsMutating(false);
+      setPendingProductIds((prev) => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
     }
   }, []);
 
   const addItem = useCallback(
     async (productId: number, quantity = 1) => {
-      if (!cart) return;
-      await runMutation(() => addItemRequest(cart.id, productId, quantity));
+      const cartId = cartRef.current?.id;
+      if (!cartId) return;
+      await runItemMutation(productId, () => addItemRequest(cartId, productId, quantity));
     },
-    [cart, runMutation],
+    [runItemMutation],
   );
 
   const updateItemQuantity = useCallback(
     async (productId: number, quantity: number) => {
-      if (!cart) return;
-      await runMutation(() => updateItemQuantityRequest(cart.id, productId, quantity));
+      const cartId = cartRef.current?.id;
+      if (!cartId) return;
+      await runItemMutation(productId, () =>
+        updateItemQuantityRequest(cartId, productId, quantity),
+      );
     },
-    [cart, runMutation],
+    [runItemMutation],
   );
 
   const removeItem = useCallback(
     async (productId: number) => {
-      if (!cart) return;
-      await runMutation(() => removeItemRequest(cart.id, productId));
+      const cartId = cartRef.current?.id;
+      if (!cartId) return;
+      await runItemMutation(productId, () => removeItemRequest(cartId, productId));
     },
-    [cart, runMutation],
+    [runItemMutation],
   );
 
-  const applyCoupon = useCallback(
-    async (code: string) => {
-      if (!cart) return;
-      await runMutation(() => applyCouponRequest(cart.id, code));
-    },
-    [cart, runMutation],
-  );
+  const applyCoupon = useCallback(async (code: string) => {
+    const cartId = cartRef.current?.id;
+    if (!cartId) return;
+
+    setIsCouponPending(true);
+    setError(null);
+    try {
+      setCart(await applyCouponRequest(cartId, code));
+    } catch (mutationError) {
+      setError(getApiErrorMessage(mutationError));
+    } finally {
+      setIsCouponPending(false);
+    }
+  }, []);
 
   const removeCoupon = useCallback(async () => {
-    if (!cart) return;
-    await runMutation(() => removeCouponRequest(cart.id));
-  }, [cart, runMutation]);
+    const cartId = cartRef.current?.id;
+    if (!cartId) return;
+
+    setIsCouponPending(true);
+    setError(null);
+    try {
+      setCart(await removeCouponRequest(cartId));
+    } catch (mutationError) {
+      setError(getApiErrorMessage(mutationError));
+    } finally {
+      setIsCouponPending(false);
+    }
+  }, []);
 
   const checkout = useCallback(async () => {
-    if (!cart) return;
-    await runMutation(() => checkoutCartRequest(cart.id));
-  }, [cart, runMutation]);
+    const cartId = cartRef.current?.id;
+    if (!cartId) return;
+
+    setIsCheckingOut(true);
+    setError(null);
+    try {
+      setCart(await checkoutCartRequest(cartId));
+    } catch (mutationError) {
+      setError(getApiErrorMessage(mutationError));
+    } finally {
+      setIsCheckingOut(false);
+    }
+  }, []);
 
   const startNewCart = useCallback(async () => {
     clearStoredCartId();
@@ -141,7 +185,9 @@ export function useCart(): UseCartResult {
   return {
     cart,
     isLoading,
-    isMutating,
+    pendingProductIds,
+    isCouponPending,
+    isCheckingOut,
     error,
     dismissError: () => setError(null),
     addItem,
