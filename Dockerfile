@@ -5,10 +5,10 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 # --- build: compile the Next.js app ---
+# BACKEND_API_URL is server-only (read at request time by the BFF routes), so
+# unlike NEXT_PUBLIC_* vars it does NOT need to be baked in at build time.
 FROM node:22-alpine AS build
 WORKDIR /app
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
