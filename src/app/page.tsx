@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 import { ErrorBanner } from '@components/molecules/ErrorBanner';
 import { CartPanel } from '@components/organisms/CartPanel';
 import { ProductList } from '@components/organisms/ProductList';
@@ -13,7 +11,9 @@ export default function Home() {
   const {
     cart,
     isLoading: isLoadingCart,
-    isMutating,
+    pendingProductIds,
+    isCouponPending,
+    isCheckingOut,
     error: cartError,
     dismissError,
     addItem,
@@ -24,13 +24,6 @@ export default function Home() {
     checkout,
     startNewCart,
   } = useCart();
-  const [pendingProductId, setPendingProductId] = useState<number | null>(null);
-
-  async function handleAdd(productId: number) {
-    setPendingProductId(productId);
-    await addItem(productId);
-    setPendingProductId(null);
-  }
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -53,9 +46,8 @@ export default function Home() {
             <ProductList
               products={products}
               cart={cart}
-              isMutating={isMutating}
-              pendingProductId={pendingProductId}
-              onAdd={handleAdd}
+              pendingProductIds={pendingProductIds}
+              onAdd={addItem}
             />
           )}
         </section>
@@ -66,7 +58,9 @@ export default function Home() {
           ) : (
             <CartPanel
               cart={cart}
-              isMutating={isMutating}
+              pendingProductIds={pendingProductIds}
+              isCouponPending={isCouponPending}
+              isCheckingOut={isCheckingOut}
               onChangeQuantity={updateItemQuantity}
               onRemoveItem={removeItem}
               onApplyCoupon={applyCoupon}

@@ -7,7 +7,9 @@ import { formatCurrency } from '@shared/format';
 
 interface CartPanelProps {
   cart: Cart;
-  isMutating: boolean;
+  pendingProductIds: ReadonlySet<number>;
+  isCouponPending: boolean;
+  isCheckingOut: boolean;
   onChangeQuantity: (productId: number, quantity: number) => void;
   onRemoveItem: (productId: number) => void;
   onApplyCoupon: (code: string) => void;
@@ -18,7 +20,9 @@ interface CartPanelProps {
 
 export function CartPanel({
   cart,
-  isMutating,
+  pendingProductIds,
+  isCouponPending,
+  isCheckingOut,
   onChangeQuantity,
   onRemoveItem,
   onApplyCoupon,
@@ -44,7 +48,8 @@ export function CartPanel({
             <CartItemRow
               key={item.productId}
               item={item}
-              isDisabled={isMutating || isFinalized}
+              isPending={pendingProductIds.has(item.productId)}
+              isLocked={isFinalized}
               onChangeQuantity={(quantity) => onChangeQuantity(item.productId, quantity)}
               onRemove={() => onRemoveItem(item.productId)}
             />
@@ -55,7 +60,7 @@ export function CartPanel({
       <div className="border-t border-hairline pt-4">
         <CouponForm
           appliedCoupon={cart.coupon}
-          isDisabled={isMutating || isFinalized || isEmpty}
+          isDisabled={isCouponPending || isFinalized || isEmpty}
           onApply={onApplyCoupon}
           onRemove={onRemoveCoupon}
         />
@@ -84,8 +89,8 @@ export function CartPanel({
         <Button
           variant="primary"
           className="w-full"
-          disabled={isEmpty || isMutating}
-          isLoading={isMutating}
+          disabled={isEmpty || isCheckingOut}
+          isLoading={isCheckingOut}
           onClick={onCheckout}
         >
           Finalizar compra
