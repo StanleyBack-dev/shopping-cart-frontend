@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-shell: 244 245 247;
+  --color-page: 244 245 247;
+  --color-card: 255 255 255;
+  --color-hairline: 226 229 233;
+
+  --color-ink: 17 24 28;
+  --color-ink-muted: 90 99 108;
+  --color-ink-subtle: 141 149 158;
+
+  --color-brand-50: 238 244 255;
+  --color-brand-100: 219 232 255;
+  --color-brand-200: 179 208 255;
+  --color-brand-300: 130 176 255;
+  --color-brand-400: 82 138 255;
+  --color-brand-500: 43 102 246;
+  --color-brand-600: 26 79 214;
+  --color-brand-700: 20 61 168;
+  --color-brand-800: 21 50 130;
+  --color-brand-900: 21 43 104;
+
+  --color-ok-fg: 18 116 68;
+  --color-ok-bg: 231 247 237;
+  --color-ok-border: 175 221 195;
+
+  --color-err-fg: 178 34 34;
+  --color-err-bg: 253 235 235;
+  --color-err-border: 240 190 190;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-shell: 15 17 21;
+    --color-page: 15 17 21;
+    --color-card: 24 27 33;
+    --color-hairline: 43 47 54;
+
+    --color-ink: 237 239 242;
+    --color-ink-muted: 168 175 184;
+    --color-ink-subtle: 117 125 135;
+
+    --color-brand-50: 21 30 51;
+    --color-brand-100: 26 41 74;
+    --color-brand-200: 33 56 102;
+    --color-brand-300: 42 76 138;
+    --color-brand-400: 58 104 184;
+    --color-brand-500: 82 138 255;
+    --color-brand-600: 130 176 255;
+    --color-brand-700: 179 208 255;
+    --color-brand-800: 219 232 255;
+    --color-brand-900: 238 244 255;
+
+    --color-ok-fg: 118 214 165;
+    --color-ok-bg: 20 43 35;
+    --color-ok-border: 40 82 63;
+
+    --color-err-fg: 240 130 130;
+    --color-err-bg: 51 24 24;
+    --color-err-border: 92 43 43;
+  }
+}
+
+:root[data-theme='dark'] {
+  --color-shell: 15 17 21;
+  --color-page: 15 17 21;
+  --color-card: 24 27 33;
+  --color-hairline: 43 47 54;
+
+  --color-ink: 237 239 242;
+  --color-ink-muted: 168 175 184;
+  --color-ink-subtle: 117 125 135;
+
+  --color-brand-50: 21 30 51;
+  --color-brand-100: 26 41 74;
+  --color-brand-200: 33 56 102;
+  --color-brand-300: 42 76 138;
+  --color-brand-400: 58 104 184;
+  --color-brand-500: 82 138 255;
+  --color-brand-600: 130 176 255;
+  --color-brand-700: 179 208 255;
+  --color-brand-800: 219 232 255;
+  --color-brand-900: 238 244 255;
+
+  --color-ok-fg: 118 214 165;
+  --color-ok-bg: 20 43 35;
+  --color-ok-border: 40 82 63;
+
+  --color-err-fg: 240 130 130;
+  --color-err-bg: 51 24 24;
+  --color-err-border: 92 43 43;
+}
+
+body {
+  background-color: rgb(var(--color-shell));
+  color: rgb(var(--color-ink));
+}
