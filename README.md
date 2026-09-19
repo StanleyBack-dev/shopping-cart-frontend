@@ -6,8 +6,8 @@ catálogo de produtos, carrinho, cupom, totais e finalização (checkout).
 Segue o padrão **BFF (Backend for Frontend)**: o navegador só conversa com o próprio servidor Next.js (mesma
 origem); é o Next.js quem repassa as chamadas para a API NestJS real, que fica invisível para o cliente.
 
-🔗 **Loja em produção:** https://shopping-cart-frontend-two.vercel.app
-🖥️ **Backend:** https://github.com/StanleyBack-dev/shopping-cart-backend ([API em produção](https://shopping-cart-backend-delta.vercel.app) · [Swagger](https://shopping-cart-backend-delta.vercel.app/docs))
+🔗 **Loja em produção:** https://shoppingcartest.vercel.app
+🖥️ **Backend:** https://github.com/StanleyBack-dev/shopping-cart-backend ([API em produção](https://api-shoppingcartest.vercel.app) · [Swagger](https://api-shoppingcartest.vercel.app/docs))
 
 ## Stack utilizada
 
